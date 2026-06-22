@@ -48,6 +48,8 @@ if (isset($_POST["reiniciar"])) {
 $datos = $_SESSION["datos"];
 $pausado = $_SESSION["pausado"];
 
+
+
 /* =====================================================
    FUNCIONES A COMPLETAR
    ===================================================== */
@@ -88,11 +90,22 @@ function calcularDesvioEstandar($datos) {
 }
 
 function calcularFrecuencias($datos) {
-    // TODO:
-    // Crear un arreglo asociativo donde:
-    // clave = dato
-    // valor = cantidad de veces que aparece
-    return [];
+    $frecuencias = [];
+
+    foreach ($datos as $dato) {
+        $clave = (string)$dato;
+
+        if (isset($frecuencias[$clave])) {
+            $frecuencias[$clave]++;
+        } else {
+            $frecuencias[$clave] = 1;
+        }
+    }
+
+    // Ordena los datos de menor a mayor
+    ksort($frecuencias, SORT_NUMERIC);
+
+    return $frecuencias;
 }
 
 /* =====================================================
@@ -121,6 +134,7 @@ if ($pausado && count($datos) > 0) {
 <head>
     <meta charset="UTF-8">
     <title>Actividad 09 - Estadística con PHP</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         body {
@@ -129,6 +143,50 @@ if ($pausado && count($datos) > 0) {
             margin: 0;
             padding: 30px;
         }
+        
+.grafico {
+    margin-top: 20px;
+}
+
+.fila-grafico {
+    display: grid;
+    grid-template-columns: 80px 1fr 60px;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.etiqueta-grafico {
+    font-weight: bold;
+    text-align: right;
+}
+
+.contenedor-barra {
+    background: #e6edf5;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 28px;
+}
+
+.barra-grafico {
+    height: 28px;
+    background: #4c78a8;
+    border-radius: 8px;
+}
+
+.valor-frecuencia {
+    font-weight: bold;
+}
+
+.grafico-contenedor {
+    width: 100%;
+    height: 350px;
+    margin-top: 20px;
+    background: #ffffff;
+    border: 1px solid #d6dce3;
+    border-radius: 10px;
+    padding: 20px;
+}
 
         .contenedor {
             max-width: 900px;
@@ -307,16 +365,42 @@ if ($pausado && count($datos) > 0) {
                 <?php endforeach; ?>
             </table>
 
-            <h2>Gráfico de frecuencias</h2>
+           <h2>Gráfico de frecuencias</h2>
 
-            <?php foreach ($frecuencias as $dato => $frecuencia): ?>
-                <div>
-                    <strong><?php echo $dato; ?></strong>
-                    <div class="barra" style="width: <?php echo $frecuencia * 60; ?>px;">
-                        <?php echo $frecuencia; ?>
-                    </div>
-                </div>
-            <?php endforeach; ?>
+<div class="grafico-contenedor">
+    <canvas id="graficoFrecuencias"></canvas>
+</div>
+
+<script>
+    const etiquetas = <?php echo json_encode(array_keys($frecuencias)); ?>;
+    const valores = <?php echo json_encode(array_values($frecuencias)); ?>;
+
+    const ctx = document.getElementById('graficoFrecuencias');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: etiquetas,
+            datasets: [{
+                label: 'Frecuencia',
+                data: valores,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+</script>
         <?php endif; ?>
 
     <?php endif; ?>
